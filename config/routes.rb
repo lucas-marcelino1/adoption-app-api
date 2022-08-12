@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      get 'home' => 'home#home'
+      resources :animals, only: %i[index]
     end
   end
 end
