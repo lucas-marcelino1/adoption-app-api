@@ -1,4 +1,5 @@
 class Api::V1::AnimalsController < ApplicationController
+  # before_action :authenticate_api_user!
 
   def index
     @animals = Animal.all
@@ -13,6 +14,10 @@ class Api::V1::AnimalsController < ApplicationController
       render status: :precondition_failed, json: {message: 'Animal was not created!', errors: @animal.errors.full_messages}
     end
   end
+
+  # def my_animals
+  #   current_api_user.animals
+  # end
 
   private
 
