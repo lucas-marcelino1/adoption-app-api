@@ -3,7 +3,8 @@ require 'rails_helper'
 RSpec.describe 'Animal', :type => :request do
   context 'GET api/v1/animals' do
     it 'successfully' do
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
       Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
 
       get('/api/v1/animals', headers: user.create_new_auth_token)
@@ -22,7 +23,8 @@ RSpec.describe 'Animal', :type => :request do
 
   context 'POST api/v1/animals' do
     it 'successfully' do
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
       animal_params = {animal: {name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id }}
 
       post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
@@ -36,7 +38,8 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'with invalid data and was not created' do
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
       animal_params = {animal: {name:'', age: '0.11', specie: '', gender: 'Male', size: 'Small', user_id: 178 }}
 
       post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
