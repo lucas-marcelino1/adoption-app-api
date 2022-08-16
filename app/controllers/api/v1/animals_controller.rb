@@ -1,5 +1,5 @@
 class Api::V1::AnimalsController < ApplicationController
-  # before_action :authenticate_api_user!
+  before_action :authenticate_api_user!
 
   def index
     @animals = Animal.all

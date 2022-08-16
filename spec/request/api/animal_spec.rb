@@ -6,7 +6,7 @@ RSpec.describe 'Animals', :type => :request do
       user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
       Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
 
-      get('/api/v1/animals')
+      get('/api/v1/animals', headers: user.create_new_auth_token)
 
       expect(response).to have_http_status(:ok)
       expect(response.content_type).to include('application/json')
@@ -25,7 +25,7 @@ RSpec.describe 'Animals', :type => :request do
       user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
       animal_params = {animal: {name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id }}
 
-      post('/api/v1/animals', params: animal_params)
+      post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
 
       expect(response).to have_http_status(:created)
       expect(response.content_type).to include('application/json')
@@ -36,9 +36,10 @@ RSpec.describe 'Animals', :type => :request do
     end
 
     it 'with invalid data and was not created' do
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
       animal_params = {animal: {name:'', age: '0.11', specie: '', gender: 'Male', size: 'Small', user_id: 178 }}
 
-      post('/api/v1/animals', params: animal_params)
+      post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
 
       expect(response).to have_http_status(:precondition_failed)
       expect(response.content_type).to include('application/json')
