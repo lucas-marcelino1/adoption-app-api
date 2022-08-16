@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'Animals', :type => :request do
+RSpec.describe 'Animal', :type => :request do
   context 'GET api/v1/animals' do
     it 'successfully' do
       user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44')
