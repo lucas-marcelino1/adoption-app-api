@@ -9,6 +9,12 @@ RSpec.describe User, type: :model do
       expect(result).to be false
     end
 
+    it 'presence of address' do
+      user = User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'111.554.544.44', address: nil)
+      result = user.valid?
+      expect(result).to be false
+    end
+
     it 'format of registration number' do
       address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
       user = User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'111.554.544.44', address: address)
