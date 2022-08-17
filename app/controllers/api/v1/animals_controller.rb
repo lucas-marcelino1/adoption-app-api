@@ -1,5 +1,6 @@
 class Api::V1::AnimalsController < ApplicationController
   before_action :authenticate_api_user!
+  before_action :verify_user, only: [:update, :destroy]
 
   def index
     @animals = Animal.all
@@ -15,13 +16,26 @@ class Api::V1::AnimalsController < ApplicationController
     end
   end
 
-  # def my_animals
-  #   current_api_user.animals
-  # end
+  def update
+    @animal = Animal.find(params[:id])
+    if @animal.update(animal_params)
+      render status: :ok, json: {message: 'Animal update successfully.', animal: @animal}
+    else
+      render status: :precondition_failed, json: {message: 'Animal was not update!', errors: @animal.errors.full_messages}
+    end
+  end
 
   private
 
   def animal_params
     params.require(:animal).permit(:name, :gender, :specie, :age, :size, :user_id)
+  end
+
+  def verify_user
+    @animal = Animal.find(params[:id])
+    if current_api_user != @animal.user
+      render status: :unauthorized, json: { errors: { title: 'User not authorized.', 
+                                        details: "You have no authorization to do this." }}
+    end
   end
 end
