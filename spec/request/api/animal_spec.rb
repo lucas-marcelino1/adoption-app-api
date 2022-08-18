@@ -126,4 +126,19 @@ RSpec.describe 'Animal', :type => :request do
       expect(animal.size).to eq('Small')
     end
   end
+
+  context 'DELETE /api/v1/animals/1' do
+    it 'successfully' do
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
+      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+
+      delete("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["message"]).to eq('Animal deleted successfully.')
+    end
+  end
 end

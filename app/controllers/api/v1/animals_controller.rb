@@ -25,6 +25,15 @@ class Api::V1::AnimalsController < ApplicationController
     end
   end
 
+  def destroy
+    @animal = Animal.find(params[:id])
+    if @animal.delete
+      render status: :ok, json: {message: 'Animal deleted successfully.'}
+    else
+      render status: :internal_server_error, json: {message: "Something went wrong"}
+    end
+  end
+
   private
 
   def animal_params
