@@ -103,7 +103,7 @@ RSpec.describe 'Animal', :type => :request do
     end
   end
 
-  context 'UPDATE api/v1/animals/1' do
+  context 'UPDATE api/v1/animals/animal_id' do
     it 'successfully' do
       user = create(:user)
       animal = create(:animal, user: user)
@@ -173,7 +173,7 @@ RSpec.describe 'Animal', :type => :request do
     end
   end
 
-  context 'DELETE /api/v1/animals/1' do
+  context 'DELETE /api/v1/animals/animal_id' do
     it 'successfully' do
       user = create(:user)
       animal = create(:animal, user: user)
