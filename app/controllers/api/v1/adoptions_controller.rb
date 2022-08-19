@@ -3,6 +3,10 @@ class Api::V1::AdoptionsController < ApplicationController
 
   def index
     @adoptions = Adoption.all
-    render status: :ok, json: @adoptions
+    if @adoptions.any?
+      render status: :ok, json: @adoptions
+    else
+      render status: :ok, json: {message: 'None adoptions registred yet.'}
+    end
   end
 end

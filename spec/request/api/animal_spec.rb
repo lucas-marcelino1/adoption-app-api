@@ -19,6 +19,18 @@ RSpec.describe 'Animal', :type => :request do
       expect(json_response.first['user']['name']).to eq('User Name')
     end
 
+    it 'without authentication headers and failed' do
+      user = create(:user)
+      animal = create(:animal, user: user)
+
+      get("/api/v1/animals")
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]).to include("You need to sign in or sign up before continuing.")
+    end
+
     it 'and something goes wrong' do
       user = create(:user)
       create(:animal, user: user)
@@ -62,6 +74,18 @@ RSpec.describe 'Animal', :type => :request do
       expect(json_response['errors']).to include("Name can't be blank")
       expect(json_response['errors']).to include("User must exist")
       expect(json_response['errors']).to include("Specie can't be blank")
+    end
+
+    it 'without authentication headers and failed' do
+      user = create(:user)
+      animal_params = {animal: {name:'', age: '0.11', specie: '', gender: 'Male', size: 'Small', user_id: 178 }}
+
+      post('/api/v1/animals', params: animal_params)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]).to include("You need to sign in or sign up before continuing.")
     end
 
     it 'and something goes wrong' do
@@ -114,6 +138,19 @@ RSpec.describe 'Animal', :type => :request do
       expect(json_response["errors"]).to include("Gender Ronaldo is not a valid gender")
     end
 
+    it 'without authentication headers and failed' do
+      user = create(:user)
+      animal = create(:animal, user: user)
+      animal_params = {animal: {name:'Clementina', age: '1.1', specie: 'Dog', gender: 'Female', size: 'Medium' }}
+
+      patch("/api/v1/animals/#{animal.id}", params: animal_params)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]).to include("You need to sign in or sign up before continuing.")
+    end
+
     it 'failed because try to update an animal from another user' do
       user = create(:user)
       animal = create(:animal, user: user)
@@ -147,6 +184,18 @@ RSpec.describe 'Animal', :type => :request do
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
       expect(json_response["message"]).to eq('Animal deleted successfully.')
+    end
+
+    it 'without authentication headers and failed' do
+      user = create(:user)
+      animal = create(:animal, user: user)
+
+      delete("/api/v1/animals/#{animal.id}")
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]).to include("You need to sign in or sign up before continuing.")
     end
 
     it 'try to delete animal from another user' do

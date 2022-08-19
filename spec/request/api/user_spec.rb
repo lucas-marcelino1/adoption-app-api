@@ -90,7 +90,7 @@ RSpec.describe 'User', :type => :request do
       expect(response_json["success"]).to be true
     end
 
-    it 'log out without headers' do
+    it 'log out without authentication headers' do
       user = create(:user)
 
       delete('/api/auth/sign_out')
