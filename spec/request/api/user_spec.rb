@@ -37,8 +37,7 @@ RSpec.describe 'User', :type => :request do
 
   describe 'POST api/auth/sign_in' do
     it 'log in successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: address, confirmed_at: Time.zone.now)
+      user = create(:user)
       login_params = { email: 'user@email.com', password: '123456' }
 
       post('/api/auth/sign_in', params: login_params)
@@ -53,8 +52,7 @@ RSpec.describe 'User', :type => :request do
     end
 
     it 'log in with user that has unconfirmed email' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: address)
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: build(:address))
       login_params = { email: 'user@email.com', password: '123456' }
 
       post('/api/auth/sign_in', params: login_params)
@@ -67,8 +65,7 @@ RSpec.describe 'User', :type => :request do
     end
 
     it 'with invalid data' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: address, confirmed_at: Time.zone.now)
+      create(:user)
       login_params = { email: 'userABC@email.com', password: '1234563' }
 
       post('/api/auth/sign_in', params: login_params)
@@ -83,8 +80,7 @@ RSpec.describe 'User', :type => :request do
 
   describe 'DELETE api/auth/sign_out' do
     it 'log out successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: address, confirmed_at: Time.zone.now)
+      user = create(:user)
       
       delete('/api/auth/sign_out', headers: user.create_new_auth_token)
 
@@ -95,9 +91,8 @@ RSpec.describe 'User', :type => :request do
     end
 
     it 'log out without headers' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.654.544-44', address: address, confirmed_at: Time.zone.now)
-      
+      user = create(:user)
+
       delete('/api/auth/sign_out')
 
       expect(response).to have_http_status(:not_found)

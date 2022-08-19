@@ -20,9 +20,8 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'and something goes wrong' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      create(:animal, user: user)
       allow(Animal).to receive(:all).and_raise(StandardError)
 
       get('/api/v1/animals', headers: user.create_new_auth_token)
@@ -37,8 +36,7 @@ RSpec.describe 'Animal', :type => :request do
 
   context 'POST api/v1/animals' do
     it 'successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
+      user = create(:user)
       animal_params = {animal: {name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id }}
 
       post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
@@ -52,8 +50,7 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'with invalid data and was not created' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
+      user = create(:user)
       animal_params = {animal: {name:'', age: '0.11', specie: '', gender: 'Male', size: 'Small', user_id: 178 }}
 
       post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
@@ -68,9 +65,8 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'and something goes wrong' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      animal_params = {animal: {name:'', age: '0.11', specie: '', gender: 'Male', size: 'Small', user_id: 178 }}
+      user = create(:user)
+      animal_params = {animal: {name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id }}
       allow(Animal).to receive(:new).and_raise(StandardError)
 
       post('/api/v1/animals', params: animal_params, headers: user.create_new_auth_token)
@@ -85,9 +81,8 @@ RSpec.describe 'Animal', :type => :request do
 
   context 'UPDATE api/v1/animals/1' do
     it 'successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      animal = create(:animal, user: user)
       animal_params = {animal: {name:'Clementina', age: '1.1', specie: 'Dog', gender: 'Female', size: 'Medium' }}
 
       patch("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token, params: animal_params)
@@ -104,9 +99,8 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'with invalid data and was not updated' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      animal = create(:animal, user: user)
       animal_params = {animal: {name:'Clementina', age: '-1.1', specie: 'Dog', gender: 'Ronaldo', size: 'Big' }}
 
       patch("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token, params: animal_params)
@@ -121,13 +115,12 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'failed because try to update an animal from another user' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.554.544-44', address: address)
-      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user2.id)
+      user = create(:user)
+      animal = create(:animal, user: user)
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.554.544-44', address: build(:address))
       animal_params = {animal: {name:'Clementina', age: '1.1', specie: 'Dog', gender: 'Female', size: 'Medium' }}
 
-      patch("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token, params: animal_params)
+      patch("/api/v1/animals/#{animal.id}", headers: user2.create_new_auth_token, params: animal_params)
 
       expect(response).to have_http_status(:unauthorized)
       expect(response.content_type).to include('application/json')
@@ -145,9 +138,8 @@ RSpec.describe 'Animal', :type => :request do
 
   context 'DELETE /api/v1/animals/1' do
     it 'successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      animal = create(:animal, user: user)
 
       delete("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token)
 
@@ -158,10 +150,9 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'try to delete animal from another user' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: address)
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      animal = create(:animal, user: user)
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: build(:address))
       delete("/api/v1/animals/#{animal.id}", headers: user2.create_new_auth_token)
 
       expect(response).to have_http_status(:unauthorized)

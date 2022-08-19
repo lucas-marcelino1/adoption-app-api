@@ -5,5 +5,6 @@ FactoryBot.define do
     password { "123456" }
     registration_number { '111.554.544-44' }
     address { build(:address)}
+    confirmed_at { Time.zone.now }
   end
 end
