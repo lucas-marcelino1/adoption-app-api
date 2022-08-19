@@ -3,9 +3,8 @@ require 'rails_helper'
 RSpec.describe 'Animal', :type => :request do
   context 'GET api/v1/animals' do
     it 'successfully' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
-      Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      user = create(:user)
+      create(:animal, user: user)
 
       get('/api/v1/animals', headers: user.create_new_auth_token)
 
@@ -163,7 +162,6 @@ RSpec.describe 'Animal', :type => :request do
       user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: address)
       user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
       animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
-
       delete("/api/v1/animals/#{animal.id}", headers: user2.create_new_auth_token)
 
       expect(response).to have_http_status(:unauthorized)
