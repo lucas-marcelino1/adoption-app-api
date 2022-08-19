@@ -104,6 +104,23 @@ RSpec.describe 'Animal', :type => :request do
       expect(json_response["animal"]["size"]).to eq('Medium')
     end
 
+    it 'with invalid data and was not updated' do
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
+      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+      animal_params = {animal: {name:'Clementina', age: '-1.1', specie: 'Dog', gender: 'Ronaldo', size: 'Big' }}
+
+      patch("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token, params: animal_params)
+
+      expect(response).to have_http_status(:precondition_failed)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["message"]).to eq('Animal was not update!')
+      expect(json_response["errors"]).to include("Age must be greater than 0")
+      expect(json_response["errors"]).to include("Size Big is not a valid size")
+      expect(json_response["errors"]).to include("Gender Ronaldo is not a valid gender")
+    end
+
     it 'failed because try to update an animal from another user' do
       address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
       user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
@@ -139,6 +156,21 @@ RSpec.describe 'Animal', :type => :request do
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
       expect(json_response["message"]).to eq('Animal deleted successfully.')
+    end
+
+    it 'try to delete animal from another user' do
+      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: address)
+      user = User.create!(name: 'User Name', email: 'user@email.com', password: '123456', registration_number: '111.554.544-44', address: address)
+      animal = Animal.create!(name:'Tunico', age: '0.11', specie: 'Cat', gender: 'Male', size: 'Small', user_id: user.id)
+
+      delete("/api/v1/animals/#{animal.id}", headers: user2.create_new_auth_token)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]['title']).to eq('User not authorized.')
+      expect(json_response["errors"]["details"]).to eq('You have no authorization to do this.')
     end
   end
 end
