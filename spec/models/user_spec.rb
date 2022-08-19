@@ -3,31 +3,34 @@ require 'rails_helper'
 RSpec.describe User, type: :model do
   describe '#valid' do
     it 'presence of registration number' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'', address: address)
-      result = user.valid?
-      expect(result).to be false
+      user = build(:user, registration_number: '')
+      expect(user).not_to be_valid
     end
 
     it 'presence of address' do
-      user = User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'111.554.544.44', address: nil)
-      result = user.valid?
-      expect(result).to be false
+      user = build(:user, address: nil)
+      expect(user).not_to be_valid
+    end
+
+    it 'presence of email' do
+      user = build(:user, email: nil)
+      expect(user).not_to be_valid
+    end
+
+    it 'presence of password' do
+      user = build(:user, password: nil)
+      expect(user).not_to be_valid
     end
 
     it 'format of registration number' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      user = User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'111.554.544.44', address: address)
-      result = user.valid?
-      expect(result).to be false
+      user = build(:user, registration_number: '114.444.777.987')
+      expect(user).not_to be_valid
     end
 
     it 'uniqueness of registration number' do
-      address = Address.new(city: 'Blumenau', state: 'Santa Catarina', zipcode: '89026-444', details: 'Rua Dr. Antonio Hafner, 540')
-      User.create(name: 'user', email: 'user@email.com', password: '123456', registration_number:'111.554.544-44', address: address)
-      user = User.create(name: 'user2', email: 'user2@email.com', password: '123456', registration_number:'111.554.544-44', address: address)
-      result = user.valid?
-      expect(result).to be false
+      create(:user)
+      user = build(:user)
+      expect(user).not_to be_valid
     end
   end
 end
