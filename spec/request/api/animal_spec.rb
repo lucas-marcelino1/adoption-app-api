@@ -175,10 +175,9 @@ RSpec.describe 'Animal', :type => :request do
 
   context 'DELETE /api/v1/animals/animal_id' do
     it 'successfully' do
-      user = create(:user)
-      animal = create(:animal, user: user)
+      animal = create(:animal)
 
-      delete("/api/v1/animals/#{animal.id}", headers: user.create_new_auth_token)
+      delete("/api/v1/animals/#{animal.id}", headers: animal.user.create_new_auth_token)
 
       expect(response).to have_http_status(:ok)
       expect(response.content_type).to include('application/json')
@@ -187,8 +186,7 @@ RSpec.describe 'Animal', :type => :request do
     end
 
     it 'without authentication headers and failed' do
-      user = create(:user)
-      animal = create(:animal, user: user)
+      animal = create(:animal)
 
       delete("/api/v1/animals/#{animal.id}")
 

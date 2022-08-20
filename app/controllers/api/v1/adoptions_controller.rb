@@ -1,7 +1,7 @@
 class Api::V1::AdoptionsController < ApplicationController
   before_action :authenticate_api_user!
-  before_action :set_adoption, only: [:show]
-  before_action :verify_user, only: [:adopt]
+  before_action :set_adoption, only: [:show, :destroy]
+  before_action :verify_user, only: [:adopt, :destroy]
 
   def index
     @adoptions = Adoption.joins(:animal).where("animals.status = ?", Animal.statuses["in_adoption"])
@@ -24,6 +24,17 @@ class Api::V1::AdoptionsController < ApplicationController
       render status: :created, json: {message: 'Adoption created successfully.', adoption: {title: @adoption.title, animal: @adoption.animal.name, user: @adoption.user.name}}
     else
       render status: :precondition_failed, json: {message: "Adoption was not created!", errors: @adoption.errors.full_messages}
+    end
+  end
+
+  #def update
+  #end
+
+  def destroy
+    if @adoption.destroy
+      render status: :ok, json: {message: 'Adoption deleted successfully!'}
+    else
+      raise StandardError
     end
   end
 

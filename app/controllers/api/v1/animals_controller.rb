@@ -30,7 +30,7 @@ class Api::V1::AnimalsController < ApplicationController
     if @animal.delete
       render status: :ok, json: {message: 'Animal deleted successfully.'}
     else
-      render status: :internal_server_error, json: {message: "Something went wrong"}
+      raise StandardError
     end
   end
 

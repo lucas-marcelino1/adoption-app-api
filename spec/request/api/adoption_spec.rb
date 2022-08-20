@@ -176,4 +176,41 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response['errors']).to include("Title is too long (maximum is 40 characters)")
     end
   end
+
+  context 'DELETE api/v1/adoption/adoption_id' do
+    it 'successfully' do
+      adoption = create(:adoption)
+
+      delete("/api/v1/adoptions/#{adoption.id}", headers: adoption.user.create_new_auth_token)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["message"]).to eq('Adoption deleted successfully!')
+    end
+
+    it 'without authentication headers and failed' do
+      adoption = create(:adoption)
+
+      delete("/api/v1/adoptions/#{adoption.id}")
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]).to include("You need to sign in or sign up before continuing.")
+    end
+
+    it 'failed cuz try to delete adoption from another user' do
+      user = create(:user)
+      adoption = create(:adoption, user: user)
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: build(:address))
+      delete("/api/v1/adoptions/#{adoption.id}", headers: user2.create_new_auth_token)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]['title']).to eq('User not authorized.')
+      expect(json_response["errors"]["details"]).to eq('You have no authorization to do this.')
+    end
+  end
 end
