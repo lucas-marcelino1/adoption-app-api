@@ -6,5 +6,6 @@ FactoryBot.define do
     gender { 'Male' }
     size { 'Small' }
     user { create(:user)}
-  end
+    status { 0 }
+  end 
 end

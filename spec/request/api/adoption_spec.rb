@@ -4,7 +4,7 @@ RSpec.describe 'Adoption', :type => :request do
   context 'GET api/v1/adoptions' do
     it 'successfully' do
       adoption = create(:adoption)
-      animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user)
+      animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user, status: Animal.statuses["in_adoption"])
       adoption_two = Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal)
 
       get('/api/v1/adoptions', headers: adoption.user.create_new_auth_token)
@@ -20,7 +20,24 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response.last['description']).to eq("Perfect dog to protect your home and family.")
       expect(json_response.last['animal']['gender']).to eq('Male')
       expect(json_response.last['animal']['specie']).to eq('Dog')
+    end
 
+    it 'and just in_adoption animals' do
+      adoption = create(:adoption)
+      animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user)
+      animal.adopted!
+      adoption_two = Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal)
+
+      get('/api/v1/adoptions', headers: adoption.user.create_new_auth_token)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response.length).to eq(1)
+      expect(json_response.first['title']).to eq('This cute cat needs a home')
+      expect(json_response.first['description']).to eq("I've founded it on side of Beahaus street inside a box.")
+      expect(json_response.first['animal']['gender']).to eq('Male')
+      expect(json_response.first['animal']['specie']).to eq('Cat')  
     end
 
     it 'and none adoptions registred' do
@@ -134,6 +151,8 @@ RSpec.describe 'Adoption', :type => :request do
       expect(response).to have_http_status(:created)
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
+      animal.reload
+      expect(animal.in_adoption?).to be true
       expect(json_response['message']).to eq('Adoption created successfully.')
       expect(json_response['adoption']['title']).to eq("This cute cat needs a home")
       expect(json_response['adoption']['animal']).to eq('Tunico')

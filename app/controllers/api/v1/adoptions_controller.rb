@@ -4,7 +4,7 @@ class Api::V1::AdoptionsController < ApplicationController
   before_action :verify_user, only: [:adopt]
 
   def index
-    @adoptions = Adoption.all
+    @adoptions = Adoption.joins(:animal).where("animals.status = ?", Animal.statuses["in_adoption"])
     if @adoptions.any?
       render status: :ok, json: @adoptions.as_json(only: [:description, :title, :id],
                                                    include: [animal: {only: [:specie, :gender]}])
@@ -20,6 +20,7 @@ class Api::V1::AdoptionsController < ApplicationController
   def create
     @adoption = Adoption.new(params.require(:adoption).permit(:title, :description, :animal_id, :user_id))
     if @adoption.save
+      @adoption.animal.in_adoption!
       render status: :created, json: {message: 'Adoption created successfully.', adoption: {title: @adoption.title, animal: @adoption.animal.name, user: @adoption.user.name}}
     else
       render status: :precondition_failed, json: {message: "Adoption was not created!", errors: @adoption.errors.full_messages}

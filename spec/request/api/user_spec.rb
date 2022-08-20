@@ -100,7 +100,6 @@ RSpec.describe 'User', :type => :request do
       json_response = JSON.parse(response.body)
       expect(json_response["success"]).to be false
       expect(json_response['errors'].first).to include ("User was not found or was not logged in.") 
-
     end
   end
 end
