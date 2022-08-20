@@ -22,7 +22,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response.last['animal']['specie']).to eq('Dog')
     end
 
-    it 'and just in_adoption animals' do
+    it 'and retrieve just animals that have status in_adoption' do
       adoption = create(:adoption)
       animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user)
       animal.adopted!
@@ -51,7 +51,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response['message']).to eq('None adoptions registred yet.')
     end
 
-    it 'without authentication headers and failed' do
+    it 'without authentication headers and fail' do
       adoption = create(:adoption)
       animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user)
       adoption_two = Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal)
@@ -100,7 +100,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response['animal']['size']).to eq('Small')
     end
 
-    it 'without authentication headers and failed' do
+    it 'without authentication headers and fail' do
       adoption = create(:adoption)
     
       get("/api/v1/adoptions/#{adoption.id}")
@@ -189,7 +189,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response["message"]).to eq('Adoption deleted successfully!')
     end
 
-    it 'without authentication headers and failed' do
+    it 'without authentication headers and fail' do
       adoption = create(:adoption)
 
       delete("/api/v1/adoptions/#{adoption.id}")
@@ -205,6 +205,54 @@ RSpec.describe 'Adoption', :type => :request do
       adoption = create(:adoption, user: user)
       user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: build(:address))
       delete("/api/v1/adoptions/#{adoption.id}", headers: user2.create_new_auth_token)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]['title']).to eq('User not authorized.')
+      expect(json_response["errors"]["details"]).to eq('You have no authorization to do this.')
+    end
+  end
+
+  context 'PATCH api/v1/adoptions/adoption_id' do
+    it 'successfully' do
+      adoption = create(:adoption)
+      animal = create(:animal, name: 'Morgana', user: adoption.user)
+      adoption_params = { adoption: {title: 'This cat is so cute', description: 'She needs a new home', animal_id: animal.id }}
+
+      patch("/api/v1/adoptions/#{adoption.id}", headers: adoption.user.create_new_auth_token, params: adoption_params)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["message"]).to eq('Adoption updated successfully!')
+      expect(json_response["adoption"]["title"]).to eq('This cat is so cute')
+      expect(json_response["adoption"]["description"]).to eq('She needs a new home')
+      expect(json_response["adoption"]["animal"]).to eq('Morgana')
+    end
+
+    it 'with invalid data and fail' do
+      adoption = create(:adoption)
+      animal = create(:animal, name: 'Morgana', user: adoption.user)
+      adoption_params = { adoption: {title: 'This cat is so cuteAAAAAAAAAAAAAAAAAAAAAAAAA', description: 'She needs a new home', animal_id: 174477 }}
+
+      patch("/api/v1/adoptions/#{adoption.id}", headers: adoption.user.create_new_auth_token, params: adoption_params)
+
+      expect(response).to have_http_status(:precondition_failed)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response["message"]).to eq('Adoption updated failed!')
+      expect(json_response['errors']).to include("Animal must exist")
+      expect(json_response['errors']).to include("Title is too long (maximum is 40 characters)")
+    end
+
+    it 'try to update adoption from another user and fail' do
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: build(:address))
+      adoption = create(:adoption)
+      animal = create(:animal, name: 'Morgana', user: adoption.user)
+      adoption_params = { adoption: {title: 'This cat is so cute', description: 'She needs a new home', animal_id: animal.id }}
+
+      patch("/api/v1/adoptions/#{adoption.id}", headers: user2.create_new_auth_token, params: adoption_params)
 
       expect(response).to have_http_status(:unauthorized)
       expect(response.content_type).to include('application/json')
