@@ -17,6 +17,15 @@ class Api::V1::AdoptionsController < ApplicationController
     render status: :ok, json: @adoption
   end
 
+  def create
+    @adoption = Adoption.new(params.require(:adoption).permit(:title, :description, :animal_id, :user_id))
+    if @adoption.save
+      render status: :created, json: {message: 'Adoption created successfully.', adoption: {title: @adoption.title, animal: @adoption.animal.name, user: @adoption.user.name}}
+    else
+      render status: :precondition_failed, json: {message: "Adoption was not created!", errors: @adoption.errors.full_messages}
+    end
+  end
+
   def adopt
     @adoption = Adoption.find(params[:adoption_id])
     @user_adopt = User.find_by(email: params[:user_email])

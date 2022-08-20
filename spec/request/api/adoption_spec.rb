@@ -64,7 +64,9 @@ RSpec.describe 'Adoption', :type => :request do
   context 'GET api/v1/adoptions/adoption_id' do
     it 'successfully' do
       adoption = create(:adoption)
-
+      animal = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user)
+      adoption_two = Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal)
+      
       get("/api/v1/adoptions/#{adoption.id}", headers: adoption.user.create_new_auth_token)
 
       expect(response).to have_http_status(:ok)
@@ -105,6 +107,54 @@ RSpec.describe 'Adoption', :type => :request do
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
       expect(json_response['message']).to eq('Animal adopted successfully.')
+    end
+
+    it 'and something went wrong' do
+      adoption = create(:adoption)
+      user = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.221.222-47', confirmed_at: Time.zone.now, address: build(:address))
+      adopt_params = { adoption_id: adoption.id, user_email: "user2@email.com" }
+
+      post("/api/v1/adoptions/#{adoption.id}/adopt", headers: adoption.user.create_new_auth_token)
+      
+      expect(response).to have_http_status(:internal_server_error)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response['errors']['title']).to eq('Something went wrong.')
+      expect(json_response['errors']['details']).to eq("Sorry, we encountered unexpected error.")
+    end
+  end
+
+  context 'POST api/v1/adoptions' do
+    it 'successfully' do
+      animal = create(:animal)
+      adoption_params = {adoption: {title: 'This cute cat needs a home', description: "I've founded it on side of Beahaus street inside a box.", animal_id: "#{animal.id}", user_id: "#{animal.user.id}"}}
+
+      post('/api/v1/adoptions', headers: animal.user.create_new_auth_token, params: adoption_params)
+
+      expect(response).to have_http_status(:created)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response['message']).to eq('Adoption created successfully.')
+      expect(json_response['adoption']['title']).to eq("This cute cat needs a home")
+      expect(json_response['adoption']['animal']).to eq('Tunico')
+      expect(json_response['adoption']['user']).to eq('User Name')
+    end
+
+    it 'with invalid data and failed' do
+      user = create(:user)
+      adoption_params = {adoption: {title: 'This cute cat needs a homeAAAAAAAAAAAAAAAAAAAAA',
+                         description: "I've founded it on side of Beahaus street inside a box.",
+                         animal_id: 37478, user_id: 488147}}
+
+      post('/api/v1/adoptions', headers: user.create_new_auth_token, params: adoption_params)
+
+      expect(response).to have_http_status(:precondition_failed)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response['message']).to eq('Adoption was not created!')
+      expect(json_response['errors']).to include("Animal must exist")
+      expect(json_response['errors']).to include('User must exist')
+      expect(json_response['errors']).to include("Title is too long (maximum is 40 characters)")
     end
   end
 end
