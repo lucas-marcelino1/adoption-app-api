@@ -7,4 +7,5 @@ class Animal < ApplicationRecord
     message: "%{value} is not a valid size" }
   validates :gender, inclusion: { in: %w(Male Female),
     message: "%{value} is not a valid gender" }
+  enum status: {unpublished: 0, in_adoption: 2, adopted: 4}
 end
