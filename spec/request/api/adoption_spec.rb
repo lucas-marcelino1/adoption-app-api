@@ -40,15 +40,15 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response.first['animal']['specie']).to eq('Cat')  
     end
 
-    it 'and none adoptions registred' do
+    it 'and not found adoptions' do
       user = create(:user)
 
       get('/api/v1/adoptions', headers: user.create_new_auth_token)
 
-      expect(response).to have_http_status(:ok)
+      expect(response).to have_http_status(:not_found)
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
-      expect(json_response['message']).to eq('None adoptions registred yet.')
+      expect(json_response['message']).to eq('None adoptions found.')
     end
 
     it 'without authentication headers and fail' do
@@ -75,6 +75,59 @@ RSpec.describe 'Adoption', :type => :request do
       json_response = JSON.parse(response.body)
       expect(json_response['errors']['title']).to eq('Something went wrong.')
       expect(json_response['errors']['details']).to eq("Sorry, we encountered unexpected error.")
+    end
+  end
+
+  context 'GET api/v1/adoptions with filters' do
+    it 'brings adoptions that have specie equals cat' do
+      adoption = create(:adoption)
+      #Dog
+      animal_two = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal_two)
+      #Cat
+      animal_three = Animal.create!(name: 'Lasanha', age: '3.0', specie: 'Cat', gender: 'Male', size: 'Medium', user: adoption.user, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Beautiful orange cat', description: 'He needs a lovely family.', user: adoption.user, animal: animal_three)
+      #Cat
+      animal_four = Animal.create!(name: 'Juanita', age: '0.1', specie: 'Dog', gender: 'Female', size: 'Small', user: adoption.user, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Little dog', description: 'A baby lovely dog.', user: adoption.user, animal: animal_four)
+      # Adopted 
+      animal_five = Animal.create!(name: 'Rodolfo', age: '0.5', specie: 'Cat', gender: 'Male', size: 'Small', user: adoption.user, status: Animal.statuses["adopted"])
+      Adoption.create!(title: 'Black cat', description: 'Perfect for you and your family.', user: adoption.user, animal: animal_five)
+
+      get('/api/v1/adoptions', headers: adoption.user.create_new_auth_token, params: { specie: 'Cat' })
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response.length).to eq(2)
+      expect(json_response.first['animal']['specie']).to eq('Cat')
+      expect(json_response.last['animal']['specie']).to eq('Cat')
+    end
+
+    it 'brings adoptions that have specie equals cat and city equals Pomerode' do
+      # Cat
+      adoption = create(:adoption)
+      # Dog
+      animal_two = Animal.create!(name: 'Alfredo', age: '1.0', specie: 'Dog', gender: 'Male', size: 'Large', user: adoption.user, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Guard dog', description: 'Perfect dog to protect your home and family.', user: adoption.user, animal: animal_two)
+      # Cat
+      user2 = User.create!(name: 'User Name 2', email: 'user2@email.com', password: '123456', registration_number: '112.584.544-44', address: build(:address, city: 'Pomerode'))
+      animal_three = Animal.create!(name: 'Lasanha', age: '3.0', specie: 'Cat', gender: 'Male', size: 'Medium', user: user2, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Beautiful orange cat', description: 'He needs a lovely family.', user: adoption.user, animal: animal_three)
+      # Dog
+      animal_four = Animal.create!(name: 'Juanita', age: '0.1', specie: 'Dog', gender: 'Female', size: 'Small', user: adoption.user, status: Animal.statuses["in_adoption"])
+      Adoption.create!(title: 'Little dog', description: 'A baby lovely dog.', user: adoption.user, animal: animal_four)
+      # Adopted 
+      animal_five = Animal.create!(name: 'Rodolfo', age: '0.5', specie: 'Cat', gender: 'Male', size: 'Small', user: adoption.user, status: Animal.statuses["adopted"])
+      Adoption.create!(title: 'Black cat', description: 'Perfect for you and your family.', user: adoption.user, animal: animal_five)
+
+      get('/api/v1/adoptions', headers: adoption.user.create_new_auth_token, params: { specie: 'Cat', city: 'pomerode' })
+
+      expect(response).to have_http_status(:ok)
+      expect(response.content_type).to include('application/json')
+      json_response = JSON.parse(response.body)
+      expect(json_response.length).to eq(1)
+      expect(json_response.first['animal']['specie']).to eq('Cat')
     end
   end
 

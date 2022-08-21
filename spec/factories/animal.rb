@@ -6,6 +6,6 @@ FactoryBot.define do
     gender { 'Male' }
     size { 'Small' }
     user { create(:user)}
-    status { 0 }
+    status { Animal.statuses["in_adoption"] }
   end 
 end

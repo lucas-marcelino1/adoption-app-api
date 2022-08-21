@@ -4,12 +4,12 @@ class Api::V1::AdoptionsController < ApplicationController
   before_action :verify_user, only: [:adopt, :destroy, :update]
 
   def index
-    @adoptions = Adoption.joins(:animal).where("animals.status = ?", Animal.statuses["in_adoption"])
+    @adoptions = Adoption.filter(filter_params).adopted
     if @adoptions.any?
       render status: :ok, json: @adoptions.as_json(only: [:description, :title, :id],
                                                    include: [animal: {only: [:specie, :gender]}])
     else
-      render status: :ok, json: {message: 'None adoptions registred yet.'}
+      render status: :not_found, json: {message: 'None adoptions found.'}
     end
   end
 
@@ -56,6 +56,10 @@ class Api::V1::AdoptionsController < ApplicationController
   end
 
   private
+
+  def filter_params
+    params.slice(:specie, :city, :gender)
+  end
 
   def verify_user
     @adoption = Adoption.find(params[:id])
