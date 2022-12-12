@@ -14,12 +14,10 @@ RSpec.describe 'Adoption', :type => :request do
       json_response = JSON.parse(response.body)
       expect(json_response.first['title']).to eq('This cute cat needs a home')
       expect(json_response.first['description']).to eq("I've founded it on side of Beahaus street inside a box.")
-      expect(json_response.first['animal']['gender']).to eq('Male')
-      expect(json_response.first['animal']['specie']).to eq('Cat')
+      expect(json_response.first['animal']).to eq('Cat | Male')
       expect(json_response.last['title']).to eq('Guard dog')
       expect(json_response.last['description']).to eq("Perfect dog to protect your home and family.")
-      expect(json_response.last['animal']['gender']).to eq('Male')
-      expect(json_response.last['animal']['specie']).to eq('Dog')
+      expect(json_response.last['animal']).to eq('Dog | Male')
     end
 
     it 'and retrieve just animals that have status in_adoption' do
@@ -36,8 +34,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(json_response.length).to eq(1)
       expect(json_response.first['title']).to eq('This cute cat needs a home')
       expect(json_response.first['description']).to eq("I've founded it on side of Beahaus street inside a box.")
-      expect(json_response.first['animal']['gender']).to eq('Male')
-      expect(json_response.first['animal']['specie']).to eq('Cat')  
+      expect(json_response.first['animal']).to eq('Cat | Male')  
     end
 
     it 'and not found adoptions' do
@@ -100,8 +97,8 @@ RSpec.describe 'Adoption', :type => :request do
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
       expect(json_response.length).to eq(2)
-      expect(json_response.first['animal']['specie']).to eq('Cat')
-      expect(json_response.last['animal']['specie']).to eq('Cat')
+      expect(json_response.first['animal']).to eq('Cat | Male')
+      expect(json_response.last['animal']).to eq('Cat | Male')
     end
 
     it 'brings adoptions that have specie equals cat and city equals Pomerode' do
@@ -127,7 +124,7 @@ RSpec.describe 'Adoption', :type => :request do
       expect(response.content_type).to include('application/json')
       json_response = JSON.parse(response.body)
       expect(json_response.length).to eq(1)
-      expect(json_response.first['animal']['specie']).to eq('Cat')
+      expect(json_response.first['animal']).to eq('Cat | Male')
     end
   end
 
@@ -144,13 +141,10 @@ RSpec.describe 'Adoption', :type => :request do
       json_response = JSON.parse(response.body)
       expect(json_response['title']).to eq('This cute cat needs a home')
       expect(json_response['description']).to eq("I've founded it on side of Beahaus street inside a box.")
-      expect(json_response['location']).to eq("Blumenau || Santa Catarina")
+      expect(json_response['location']).to eq("Blumenau - Santa Catarina")
       expect(json_response['user']).to eq("User Name")
-      expect(json_response['animal']['name']).to eq('Tunico')
-      expect(json_response['animal']['age']).to eq(0.11)
-      expect(json_response['animal']['gender']).to eq('Male')
-      expect(json_response['animal']['specie']).to eq('Cat')
-      expect(json_response['animal']['size']).to eq('Small')
+      expect(json_response['animal']).to eq('Cat | Male')
+      expect(json_response['animal_information']).to eq('0.11 anos - Small')
     end
 
     it 'without authentication headers and fail' do

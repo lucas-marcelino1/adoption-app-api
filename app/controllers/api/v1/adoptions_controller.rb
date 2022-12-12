@@ -6,8 +6,8 @@ class Api::V1::AdoptionsController < ApplicationController
   def index
     @adoptions = Adoption.filter(filter_params).adopted
     if @adoptions.any?
-      render status: :ok, json: @adoptions.as_json(only: [:description, :title, :id],
-                                                   include: [animal: {only: [:specie, :gender]}])
+      render status: :ok, json: @adoptions, only: [:description, :title, :id],
+                                                   include: [animal: {only: [:specie, :gender]}]
     else
       render status: :not_found, json: {message: 'None adoptions found.'}
     end
